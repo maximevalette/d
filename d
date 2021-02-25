@@ -8,7 +8,7 @@ setup() {
     project=${directory##*/}
   fi
 
-	if [ "$(/usr/local/bin/docker-compose --project-directory "$directory" -p $project-blue top)" ]; then
+	if [ "$(docker-compose --project-directory "$directory" -p $project-blue top)" ]; then
     CURRENT_PROJECT="$project-blue"
     DEPLOY_PROJECT="$project-green"
 	else
@@ -20,7 +20,7 @@ setup() {
 }
 
 composer() {
-  /usr/local/bin/docker run --rm -u www-data --interactive --tty --volume $directory:/app composer "$args"
+  docker run --rm -u www-data --interactive --tty --volume $directory:/app composer "$args"
 }
 
 console() {
@@ -29,18 +29,18 @@ console() {
 }
 
 run() {
-  /usr/local/bin/docker-compose --project-directory "$directory" --project-name="$CURRENT_PROJECT" $args
+  docker-compose --project-directory "$directory" --project-name="$CURRENT_PROJECT" $args
 }
 
 deploy() {
   echo "Building $DEPLOY_PROJECT container"
-  /usr/local/bin/docker-compose --project-name=$DEPLOY_PROJECT build
+  docker-compose --project-name=$DEPLOY_PROJECT build
 
   echo "Stopping $CURRENT_PROJECT container"
-  /usr/local/bin/docker-compose --project-name=$CURRENT_PROJECT down
+  docker-compose --project-name=$CURRENT_PROJECT down
 
   echo "Starting $DEPLOY_PROJECT container"
-  /usr/local/bin/docker-compose --project-name=$DEPLOY_PROJECT up $args
+  docker-compose --project-name=$DEPLOY_PROJECT up $args
 }
 
 while [ "$1" != "" ]; do
