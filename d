@@ -1,35 +1,47 @@
 #!/bin/bash
+if [ -f "`pwd`/.d" ]; then
+  source "`pwd`/.d"
+fi
+
 setup() {
 	if [ -z $directory ]; then
     directory=`pwd`
   fi
-  
-	if [ -z $project ]; then
-    project=${directory##*/}
-  fi
 
-	if [ "$(docker-compose --project-directory "$directory" -p $project-blue top)" ]; then
-    CURRENT_PROJECT="$project-blue"
-    DEPLOY_PROJECT="$project-green"
+  PROJECT=${PROJECT:=${directory##*/}}
+  USER=${USER:=www-data}
+
+	if [ "$(docker-compose --project-directory "$directory" -p $PROJECT-blue top)" ]; then
+    CURRENT_PROJECT="$PROJECT-blue"
+    DEPLOY_PROJECT="$PROJECT-green"
 	else
-    CURRENT_PROJECT="$project-green"
-    DEPLOY_PROJECT="$project-blue"
+    CURRENT_PROJECT="$PROJECT-green"
+    DEPLOY_PROJECT="$PROJECT-blue"
 	fi
 
 	echo "[$CURRENT_PROJECT]"
 }
 
 composer() {
-  docker run --rm -u www-data --interactive --tty --volume $directory:/app composer "$args"
+  docker run --rm -u $USER --interactive --tty --volume $directory:/app composer "$args"
 }
 
 console() {
-  args="exec -u www-data app php /script/bin/console $args"
+  args="exec -u $USER app php /script/bin/console $args"
+  run
+}
+
+exec() {
+  args="exec -u $USER app $args"
   run
 }
 
 run() {
   docker-compose --project-directory "$directory" --project-name="$CURRENT_PROJECT" $args
+}
+
+version() {
+  echo 'maximevalette/d version 0.4'
 }
 
 deploy() {
@@ -46,7 +58,7 @@ deploy() {
 while [ "$1" != "" ]; do
   case "$1" in
     -p | --project )  shift
-                      project=$1
+                      PROJECT=$1
                       shift
                       ;;
     -d | --dir )      shift
@@ -67,6 +79,12 @@ while [ "$1" != "" ]; do
                       shift
                       args="$@"
                       console
+                      exit
+                      ;;
+    exec)             setup
+                      shift
+                      args="$@"
+                      exec
                       exit
                       ;;
     run)              setup
@@ -90,7 +108,12 @@ while [ "$1" != "" ]; do
                       exit
                       ;;
                       
-    version)          echo '0.4'
+    version)          version
+                      exit
+                      ;;
+
+    *)                version
+                      echo 'Available commands: [-p] [-d] project composer console exec run deploy ps ssh version'
                       exit
                       ;;
   esac
