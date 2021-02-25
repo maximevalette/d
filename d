@@ -90,7 +90,7 @@ while [ "$1" != "" ]; do
                       exit
                       ;;
                       
-    version)          echo '0.3-beta'
+    version)          echo '0.4'
                       exit
                       ;;
   esac
