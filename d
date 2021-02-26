@@ -107,13 +107,21 @@ while [ "$1" != "" ]; do
                       docker exec -it "$1" sh
                       exit
                       ;;
+    d)                shift
+                      docker $@
+                      exit
+                      ;;
+    c)                shift
+                      docker-compose $@
+                      exit
+                      ;;
                       
     version)          version
                       exit
                       ;;
 
     *)                version
-                      echo 'Available commands: [-p] [-d] project composer console exec run deploy ps ssh version'
+                      echo 'Available commands: [-p] [-d] d c project composer console exec run deploy ps ssh version'
                       exit
                       ;;
   esac
