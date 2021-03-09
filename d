@@ -26,6 +26,14 @@ composer() {
   docker run --rm -u $USER --interactive --tty --volume $directory:/app composer "$args"
 }
 
+stop() {
+  if [ "$args" = "all" ]; then
+    docker stop $(docker ps -aq)
+  else
+    docker stop $args
+  fi
+}
+
 console() {
   args="exec -u $USER app php /script/bin/console $args"
   run
@@ -103,6 +111,11 @@ while [ "$1" != "" ]; do
     ps)               docker ps
                       exit
                       ;;
+    stop)             shift
+                      args="$@"
+                      stop
+                      exit
+                      ;;
     ssh)              shift
                       docker exec -it "$1" sh
                       exit
@@ -121,7 +134,7 @@ while [ "$1" != "" ]; do
                       ;;
 
     *)                version
-                      echo 'Available commands: [-p] [-d] d c project composer console exec run deploy ps ssh version'
+                      echo 'Available commands: [-p] [-d] d c project composer console exec run deploy ps stop ssh version'
                       exit
                       ;;
   esac
